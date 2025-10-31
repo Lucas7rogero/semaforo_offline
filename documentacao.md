@@ -48,21 +48,21 @@ class Semaforo {
     int pinoVerde;
 
   public:
-    // Construtor: define os pinos usados
+    // Construtor
     Semaforo(int vermelho, int amarelo, int verde) {
       pinoVermelho = vermelho;
       pinoAmarelo = amarelo;
       pinoVerde = verde;
     }
 
-    // Inicializa os pinos como saída
+    // Inicializa os pinos
     void iniciar() {
       pinMode(pinoVermelho, OUTPUT);
       pinMode(pinoAmarelo, OUTPUT);
       pinMode(pinoVerde, OUTPUT);
     }
 
-    // Acende a luz vermelha
+    // Métodos para as fases do semáforo
     void vermelho(int tempo) {
       digitalWrite(pinoVermelho, HIGH);
       digitalWrite(pinoAmarelo, LOW);
@@ -70,7 +70,6 @@ class Semaforo {
       delay(tempo);
     }
 
-    // Acende a luz verde
     void verde(int tempo) {
       digitalWrite(pinoVermelho, LOW);
       digitalWrite(pinoAmarelo, LOW);
@@ -78,7 +77,6 @@ class Semaforo {
       delay(tempo);
     }
 
-    // Acende a luz amarela
     void amarelo(int tempo) {
       digitalWrite(pinoVermelho, LOW);
       digitalWrite(pinoAmarelo, HIGH);
@@ -87,17 +85,19 @@ class Semaforo {
     }
 };
 
-// Cria um objeto semáforo com os pinos 8, 9 e 10
-Semaforo semaforo(8, 9, 10);
+// Criação de um ponteiro para objeto Semaforo
+Semaforo* semaforo;
 
 void setup() {
-  semaforo.iniciar();
+  // Instancia o objeto dinamicamente (na memória heap)
+  semaforo = new Semaforo(8, 9, 10);
+  semaforo->iniciar(); // Usa '->' porque é um ponteiro
 }
 
 void loop() {
-  semaforo.vermelho(6000); // 6 segundos vermelho
-  semaforo.verde(4000);    // 4 segundos verde
-  semaforo.amarelo(2000);  // 2 segundos amarelo
+  semaforo->vermelho(6000);
+  semaforo->verde(4000);
+  semaforo->amarelo(2000);
 }
 ```
 
