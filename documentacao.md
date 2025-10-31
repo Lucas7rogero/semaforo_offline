@@ -8,8 +8,6 @@ O sistema alterna automaticamente entre as três fases do semáforo, garantindo 
 - 🟢 **Verde:** 4 segundos  
 - 🟡 **Amarelo:** 2 segundos  
 
-Além disso, **foi implementado um recurso extra opcional**: um **display LCD I2C 16x2** que exibe dinamicamente o **tempo restante de cada fase**.  
-
 ---
 
 ## Componentes Utilizados
@@ -20,7 +18,6 @@ Além disso, **foi implementado um recurso extra opcional**: um **display LCD I2
 | LED amarelo | 1 | Representa o sinal de **Atenção** |
 | LED verde | 1 | Representa o sinal de **Siga** |
 | Resistores | 3 | 220 Ω — um para cada LED |
-| Display I2C 16x2 | 1 | **Extra:** para mostrar contagem regressiva |
 | Protoboard | 1 | Padrão 830 pontos |
 | Fios jumper | 5 | Macho–macho |
 | Fios jumper | 4 | Macho–fêmea |
@@ -38,78 +35,69 @@ Além disso, **foi implementado um recurso extra opcional**: um **display LCD I2
 | Amarelo | + resistor → 9 | GND |
 | Verde | + resistor → 10 | GND |
 
-### Conexões do Display LCD I2C (extra)
-| Pino do LCD | Pino do Arduino | Função |
-|--------------|----------------|----------|
-| VCC | 5V | Alimentação |
-| GND | GND | Terra |
-| SDA | A4 | Comunicação de dados |
-| SCL | A5 | Clock do barramento I2C |
-
 ---
 
 ## Código Fonte (Arduino IDE)
 
 ```cpp
-#include <Wire.h>
-#include <LiquidCrystal_I2C.h>
+// Classe que representa um semáforo com 3 LEDs
+class Semaforo {
+  private:
+    int pinoVermelho;
+    int pinoAmarelo;
+    int pinoVerde;
 
-// Define os pinos dos LEDs
-#define LED_RED 8
-#define LED_YELLOW 9
-#define LED_GREEN 10
+  public:
+    // Construtor: define os pinos usados
+    Semaforo(int vermelho, int amarelo, int verde) {
+      pinoVermelho = vermelho;
+      pinoAmarelo = amarelo;
+      pinoVerde = verde;
+    }
 
-// Configura o display I2C
-LiquidCrystal_I2C lcd(0x27, 16, 2);
+    // Inicializa os pinos como saída
+    void iniciar() {
+      pinMode(pinoVermelho, OUTPUT);
+      pinMode(pinoAmarelo, OUTPUT);
+      pinMode(pinoVerde, OUTPUT);
+    }
+
+    // Acende a luz vermelha
+    void vermelho(int tempo) {
+      digitalWrite(pinoVermelho, HIGH);
+      digitalWrite(pinoAmarelo, LOW);
+      digitalWrite(pinoVerde, LOW);
+      delay(tempo);
+    }
+
+    // Acende a luz verde
+    void verde(int tempo) {
+      digitalWrite(pinoVermelho, LOW);
+      digitalWrite(pinoAmarelo, LOW);
+      digitalWrite(pinoVerde, HIGH);
+      delay(tempo);
+    }
+
+    // Acende a luz amarela
+    void amarelo(int tempo) {
+      digitalWrite(pinoVermelho, LOW);
+      digitalWrite(pinoAmarelo, HIGH);
+      digitalWrite(pinoVerde, LOW);
+      delay(tempo);
+    }
+};
+
+// Cria um objeto semáforo com os pinos 8, 9 e 10
+Semaforo semaforo(8, 9, 10);
 
 void setup() {
-  // Configuração dos LEDs
-  pinMode(LED_RED, OUTPUT);
-  pinMode(LED_YELLOW, OUTPUT);
-  pinMode(LED_GREEN, OUTPUT);
-
-  // Inicialização do display LCD
-  lcd.init();
-  lcd.backlight();
-  lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("  SEMAFORO V1.0");
-  lcd.setCursor(0, 1);
-  lcd.print("Iniciando...");
-  delay(2000);
-  lcd.clear();
+  semaforo.iniciar();
 }
 
 void loop() {
-  // Fase Vermelha (6s)
-  digitalWrite(LED_RED, HIGH);
-  digitalWrite(LED_YELLOW, LOW);
-  digitalWrite(LED_GREEN, LOW);
-  mostrarContagem("Vermelho", 6);
-
-  // Fase Verde (4s)
-  digitalWrite(LED_RED, LOW);
-  digitalWrite(LED_YELLOW, LOW);
-  digitalWrite(LED_GREEN, HIGH);
-  mostrarContagem("Verde", 4);
-
-  // Fase Amarela (2s)
-  digitalWrite(LED_RED, LOW);
-  digitalWrite(LED_YELLOW, HIGH);
-  digitalWrite(LED_GREEN, LOW);
-  mostrarContagem("Amarelo", 2);
-}
-
-// Função auxiliar: exibe contagem no LCD
-void mostrarContagem(String cor, int tempo) {
-  for (int i = tempo; i > 0; i--) {
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("Sinal: " + cor);
-    lcd.setCursor(0, 1);
-    lcd.print("Tempo: " + String(i) + "s");
-    delay(1000);
-  }
+  semaforo.vermelho(6000); // 6 segundos vermelho
+  semaforo.verde(4000);    // 4 segundos verde
+  semaforo.amarelo(2000);  // 2 segundos amarelo
 }
 ```
 
@@ -193,27 +181,8 @@ Conecte os jumpers de sinal, que vão controlar o acendimento dos LEDs:
 
 Esses fios ligam as saídas digitais do Arduino aos LEDs, permitindo que o código acione cada cor conforme o tempo programado no sketch.
 
-### 6° Passo
-<div align="center">
-<sub>Figura 6 - Extra: Display</sub>
-<br>
-<img src="assets/figura6.png" alt='figura 6' width="70%">
-<br>
-<br>
-</div>
+## Protótipo Completo
+![Prtótipo completo com semáforo](assets/projetocompleto.jpeg)
 
-Para complementar o projeto, conecte o display LCD 16x2 com módulo I2C, que mostrará o tempo de cada fase do semáforo:
-
-- **GND** do display → **coluna negativa (–)** da protoboard com **jumper preto**
-
-- **VCC** do display → **coluna positiva (+)** da protoboard com **jumper vermelho**
-
-- **SDA** → pino **A4** do Arduino com **jumper branco**
-
-- **SCL** → pino **A5** do Arduino com **jumper azul**
-
-Essas conexões permitem a comunicação entre o Arduino e o display com apenas dois fios de dados.
-
----
 ## Vídeo de Demonstração
-[Clique AQUI](https://drive.google.com/file/d/1In0ACiZk_tQ2dKcayyV4njXACwC2q1oC/view?usp=sharing)
+[Clique AQUI](https://drive.google.com/file/d/1FtbjozhcOKHAtU4wLIaT06EE87sjUokb/view?usp=sharing)
